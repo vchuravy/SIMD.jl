@@ -3,46 +3,14 @@ __precompile__()
 module SIMD
 
 include("types.jl")
-# Floating point formats
 
-int_type(::Type{Float16}) = Int16
-int_type(::Type{Float32}) = Int32
-int_type(::Type{Float64}) = Int64
-# int_type(::Type{Float128}) = Int128
-# int_type(::Type{Float256}) = Int256
+# Floating point formats
 
 uint_type(::Type{Float16}) = UInt16
 uint_type(::Type{Float32}) = UInt32
 uint_type(::Type{Float64}) = UInt64
-# uint_type(::Type{Float128}) = UInt128
-# uint_type(::Type{Float256}) = UInt256
 
-significand_bits(::Type{Float16}) = 10
-significand_bits(::Type{Float32}) = 23
-significand_bits(::Type{Float64}) = 52
-# significand_bits(::Type{Float128}) = 112
-# significand_bits(::Type{Float256}) = 136
-
-exponent_bits{T<:FloatingTypes}(::Type{T}) =
-    8*sizeof(T) - 1 - significand_bits(T)
-sign_bits{T<:FloatingTypes}(::Type{T}) = 1
-
-significand_mask{T<:FloatingTypes}(::Type{T}) =
-    uint_type(T)(uint_type(T)(1) << significand_bits(T) - 1)
-exponent_mask{T<:FloatingTypes}(::Type{T}) =
-    uint_type(T)(uint_type(T)(1) << exponent_bits(T) - 1) << significand_bits(T)
-sign_mask{T<:FloatingTypes}(::Type{T}) =
-    uint_type(T)(1) << (significand_bits(T) + exponent_bits(T))
-
-for T in (Float16, Float32, Float64)
-    @assert sizeof(int_type(T)) == sizeof(T)
-    @assert sizeof(uint_type(T)) == sizeof(T)
-    @assert significand_bits(T) + exponent_bits(T) + sign_bits(T) == 8*sizeof(T)
-    @assert significand_mask(T) | exponent_mask(T) | sign_mask(T) ==
-        typemax(uint_type(T))
-    @assert significand_mask(T) ⊻ exponent_mask(T) ⊻ sign_mask(T) ==
-        typemax(uint_type(T))
-end
+import Base: significand_mask, exponent_mask, sign_mask
 
 # Convert Julia types to LLVM types
 
