@@ -59,12 +59,12 @@ const VE = Base.VecElement
 
 # The Julia SIMD vector type
 export Vec
-immutable Vec{N,T<:ScalarTypes} <: DenseArray{T,1}   # <: Number
+struct Vec{N,T<:ScalarTypes} <: DenseArray{T,1}   # <: Number
     elts::NTuple{N,VE{T}}
     @inline (::Type{Vec{N,T}}){N,T}(elts::NTuple{N, VE{T}}) = new{N,T}(elts)
 end
 
-function Base.show{N,T}(io::IO, v::Vec{N,T})
+function Base.show(io::IO, v::Vec{N,T}) where {N,T}
     print(io, T, "⟨")
     for i in 1:N
         @static if VERSION < v"0.6-"
@@ -96,14 +96,14 @@ end
 # eltype and ndims are provided by DenseArray
 # Base.eltype{N,T}(::Type{Vec{N,T}}) = T
 # Base.ndims{N,T}(::Type{Vec{N,T}}) = 1
-Base.length{N,T}(::Type{Vec{N,T}}) = N
-Base.size{N,T}(::Type{Vec{N,T}}) = (N,)
-Base.size{N,T}(::Type{Vec{N,T}}, n::Integer) = (N,)[n]
+Base.length(::Type{Vec{N,T}}) where {N,T} = N
+Base.size(::Type{Vec{N,T}}) where {N,T} = (N,)
+Base.size(::Type{Vec{N,T}}, n::Integer) where {N,T} = (N,)[n]
 # Base.eltype{N,T}(::Vec{N,T}) = T
 # Base.ndims{N,T}(::Vec{N,T}) = 1
-Base.length{N,T}(::Vec{N,T}) = N
-Base.size{N,T}(::Vec{N,T}) = (N,)
-Base.size{N,T}(::Vec{N,T}, n::Integer) = (N,)[n]
+Base.length(::Vec{N,T}) where {N,T} = N
+Base.size(::Vec{N,T}) where {N,T} = (N,)
+Base.size(::Vec{N,T}, n::Integer) where {N,T} = (N,)[n]
 
 # Type conversion
 
@@ -124,9 +124,9 @@ end
 (::Type{Vec}){N,T<:ScalarTypes}(xs::NTuple{N,T}) = Vec{N,T}(xs)
 
 # Convert between vectors
-@inline Base.convert{N,T}(::Type{Vec{N,T}}, v::Vec{N,T}) = v
-@inline Base.convert{N,R,T}(::Type{Vec{N,R}}, v::Vec{N,T}) = Vec{N,R}(Tuple(v))
-@generated function Base. %{N,R,T}(v::Vec{N,T}, ::Type{Vec{N,R}})
+@inline Base.convert(::Type{Vec{N,T}}, v::Vec{N,T}) where {N,T} = v
+@inline Base.convert(::Type{Vec{N,R}}, v::Vec{N,T}) where {N,R,T} = Vec{N,R}(Tuple(v))
+@generated function Base. %(v::Vec{N,T}, ::Type{Vec{N,R}}) where {N,R,T}
     quote
         $(Expr(:meta, :inline))
         Vec{N,R}(tuple($([:(v.elts[$i].value % R) for i in 1:N]...)))
@@ -134,13 +134,13 @@ end
 end
 
 # Convert vectors to tuples
-@generated function Base.convert{N,R,T}(::Type{NTuple{N,R}}, v::Vec{N,T})
+@generated function Base.convert(::Type{NTuple{N,R}}, v::Vec{N,T}) where {N,R,T}
     quote
         $(Expr(:meta, :inline))
         tuple($([:(R(v.elts[$i].value)) for i in 1:N]...))
     end
 end
-@inline Base.convert{N,T}(::Type{Tuple}, v::Vec{N,T}) =
+@inline Base.convert(::Type{Tuple}, v::Vec{N,T}) where {N,T} =
     Base.convert(NTuple{N,T}, v)
 
 # Promotion rules
@@ -148,5 +148,5 @@ end
 # Note: Type promotion only works for subtypes of Number
 # Base.promote_rule{N,T<:ScalarTypes}(::Type{Vec{N,T}}, ::Type{T}) = Vec{N,T}
 
-Base.zero{N,T}(::Type{Vec{N,T}}) = Vec{N,T}(zero(T))
-Base.one{N,T}(::Type{Vec{N,T}}) = Vec{N,T}(one(T))
+Base.zero(::Type{Vec{N,T}}) where {N,T} = Vec{N,T}(zero(T))
+Base.one(::Type{Vec{N,T}}) where {N,T} = Vec{N,T}(one(T))
