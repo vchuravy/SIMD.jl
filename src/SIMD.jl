@@ -1,6 +1,7 @@
 __precompile__()
 
 module SIMD
+using LLVM
 
 include("types.jl")
 
@@ -13,30 +14,7 @@ uint_type(::Type{Float64}) = UInt64
 import Base: significand_mask, exponent_mask, sign_mask
 
 # Convert Julia types to LLVM types
-
-llvmtype(::Type{Bool}) = "i8"   # Julia represents Tuple{Bool} as [1 x i8]
-
-# llvmtype(::Type{Bool8}) = "i8"
-# llvmtype(::Type{Bool16}) = "i16"
-# llvmtype(::Type{Bool32}) = "i32"
-# llvmtype(::Type{Bool64}) = "i64"
-# llvmtype(::Type{Bool128}) = "i128"
-
-llvmtype(::Type{Int8}) = "i8"
-llvmtype(::Type{Int16}) = "i16"
-llvmtype(::Type{Int32}) = "i32"
-llvmtype(::Type{Int64}) = "i64"
-llvmtype(::Type{Int128}) = "i128"
-
-llvmtype(::Type{UInt8}) = "i8"
-llvmtype(::Type{UInt16}) = "i16"
-llvmtype(::Type{UInt32}) = "i32"
-llvmtype(::Type{UInt64}) = "i64"
-llvmtype(::Type{UInt128}) = "i128"
-
-llvmtype(::Type{Float16}) = "half"
-llvmtype(::Type{Float32}) = "float"
-llvmtype(::Type{Float64}) = "double"
+llvmtype(::Type{T}) where T = repr(convert(LLVMType, T))
 
 # Type-dependent optimization flags
 # fastflags{T<:IntTypes}(::Type{T}) = "nsw"
