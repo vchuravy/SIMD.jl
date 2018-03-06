@@ -1,5 +1,5 @@
 using SIMD
-using Base.Test
+using Test
 
 info("Basic definitions")
 
